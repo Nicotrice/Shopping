@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Items</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --freezer: #38bdf8;
+    --cupboard: #4ade80;
+    --household: #c084fc;
+    --weekly: #fb923c;
+    --danger: #ef4444;
+    --success: #4ade80;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+
+  .count-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ADD FORM */
+  .add-form {
+    margin: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .add-form h2 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--success);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .field-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--success);
+  }
+
+  select option { background: var(--surface2); }
+
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--success);
+    color: #0f0f13;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .add-btn:disabled { opacity: 0.5; }
+
+  /* SECTION HEADERS */
+  .section-title {
+    margin: 20px 16px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ITEM CARDS */
+  .items-list { margin: 0 16px; }
+
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .item-card.inactive {
+    opacity: 0.6;
+  }
+
+  .item-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .cat-dot.Freezer { background: var(--freezer); }
+  .cat-dot.Cupboard { background: var(--cupboard); }
+  .cat-dot.Household { background: var(--household); }
+  .cat-dot.Weekly { background: var(--weekly); }
+
+  .item-card-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-card-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .item-card-chevron {
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .item-card.open .item-card-chevron { transform: rotate(180deg); }
+
+  .item-card-body {
+    display: none;
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .item-card.open .item-card-body { display: block; }
+
+  .edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .edit-grid .full { grid-column: 1 / -1; }
+
+  .edit-field input,
+  .edit-field select {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  .item-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .btn-save {
+    flex: 1;
+    padding: 9px;
+    background: var(--success);
+    color: #0f0f13;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-deactivate {
+    padding: 9px 14px;
+    background: var(--surface2);
+    color: var(--danger);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-reactivate {
+    flex: 1;
+    padding: 9px;
+    background: var(--surface2);
+    color: var(--success);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* LOADING */
+  .state-msg {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--success);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 20px;
+    font-size: 13px; color: var(--text);
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+
+  .saving-indicator {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 4px;
+    min-height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="/">← Shop</a>
+  <h1>⚙️ Manage Items</h1>
+  <div class="count-badge" id="countBadge">Loading...</div>
+</header>
+
+<!-- ADD NEW ITEM -->
+<div class="add-form">
+  <h2>+ Add New Item</h2>
+  <div class="form-grid">
+    <div class="full">
+      <div class="field-label">Item Name</div>
+      <input type="text" id="newName" placeholder="e.g. Pasta 500g">
+    </div>
+    <div>
+      <div class="field-label">Category</div>
+      <select id="newCategory">
+        <option value="Freezer">🧊 Freezer</option>
+        <option value="Cupboard">🥫 Cupboard</option>
+        <option value="Household">🧹 Household</option>
+        <option value="Weekly" selected>🛒 Weekly</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Unit Price (£)</div>
+      <input type="number" id="newPrice" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div>
+      <div class="field-label">Default Qty</div>
+      <input type="number" id="newDefaultQty" placeholder="1" min="1" value="1">
+    </div>
+  </div>
+  <button class="add-btn" id="addBtn" onclick="addItem()">Add Item</button>
+</div>
+
+<div id="activeSection">
+  <div class="state-msg"><div class="spinner"></div>Loading items...</div>
+</div>
+
+<div id="inactiveSection"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = '/.netlify/functions/fibery';
+const CATEGORIES = ['Freezer', 'Cupboard', 'Household', 'Weekly'];
+const CAT_ICONS = { Freezer: '🧊', Cupboard: '🥫', Household: '🧹', Weekly: '🛒' };
+
+let allItems = [];
+const saveTimers = {};
+
+async function fibery(query) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.errors) throw new Error(json.errors[0].message);
+  return json.data;
+}
+
+async function loadItems() {
+  try {
+    const data = await fibery(`{
+      findShoppingItems(orderBy: { itemName: ASC }) {
+        id
+        itemName
+        unitPrice
+        defaultQuantity
+        currentQuantity
+        active
+        category { name }
+      }
+    }`);
+    allItems = data.findShoppingItems.map(i => ({
+      id: i.id,
+      name: i.itemName,
+      price: i.unitPrice || 0,
+      defaultQty: i.defaultQuantity || 1,
+      currentQty: i.currentQuantity || 1,
+      active: i.active !== false,
+      category: i.category?.name || 'Weekly'
+    }));
+    render();
+  } catch(e) {
+    document.getElementById('activeSection').innerHTML = `<div class="state-msg">❌ ${e.message}<br><br><button onclick="loadItems()" style="color:var(--success);background:none;border:none;cursor:pointer;font-size:14px;">Retry</button></div>`;
+  }
+}
+
+function render() {
+  const active = allItems.filter(i => i.active);
+  const inactive = allItems.filter(i => !i.active);
+
+  document.getElementById('countBadge').textContent = `${active.length} active`;
+
+  // Active items
+  const activeSection = document.getElementById('activeSection');
+  activeSection.innerHTML = `<div class="section-title">Active Items (${active.length})</div><div class="items-list" id="activeList"></div>`;
+  const activeList = document.getElementById('activeList');
+  active.forEach(item => activeList.appendChild(buildCard(item, true)));
+
+  // Inactive items
+  const inactiveSection = document.getElementById('inactiveSection');
+  if (inactive.length === 0) {
+    inactiveSection.innerHTML = '';
+    return;
+  }
+  inactiveSection.innerHTML = `<div class="section-title">Inactive Items (${inactive.length})</div><div class="items-list" id="inactiveList"></div>`;
+  const inactiveList = document.getElementById('inactiveList');
+  inactive.forEach(item => inactiveList.appendChild(buildCard(item, false)));
+}
+
+function buildCard(item, isActive) {
+  const card = document.createElement('div');
+  card.className = 'item-card' + (isActive ? '' : ' inactive');
+  card.id = 'card-' + item.id;
+
+  card.innerHTML = `
+    <div class="item-card-header" onclick="toggleCard('${item.id}')">
+      <div class="cat-dot ${item.category}"></div>
+      <div class="item-card-name">${item.name}</div>
+      <div class="item-card-meta">£${item.price.toFixed(2)} · qty ${item.defaultQty}</div>
+      <div class="item-card-chevron">▾</div>
+    </div>
+    <div class="item-card-body">
+      <div class="edit-grid">
+        <div class="edit-field full">
+          <div class="field-label">Item Name</div>
+          <input type="text" id="name-${item.id}" value="${item.name}" onchange="scheduleSave('${item.id}')">
+        </div>
+        <div class="edit-field">
+          <div class="field-label">Category</div>
+          <select id="cat-${item.id}" onchange="scheduleSave('${item.id}')">
+            ${CATEGORIES.map(c => `<option value="${c}" ${c === item.category ? 'selected' : ''}>${CAT_ICONS[c]} ${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="edit-field">
+          <div class="field-label">Price (£)</div>
+          <input type="number" id="price-${item.id}" value="${item.price.toFixed(2)}" step="0.01" min="0" onchange="scheduleSave('${item.id}')">
+        </div>
+        <div class="edit-field">
+          <div class="field-label">Default Qty</div>
+          <input type="number" id="qty-${item.id}" value="${item.defaultQty}" min="0" onchange="scheduleSave('${item.id}')">
+        </div>
+      </div>
+      <div class="saving-indicator" id="saving-${item.id}"></div>
+      <div class="item-actions">
+        <button class="btn-save" onclick="saveItem('${item.id}')">Save</button>
+        ${isActive
+          ? `<button class="btn-deactivate" onclick="setActive('${item.id}', false)">Deactivate</button>`
+          : `<button class="btn-reactivate" onclick="setActive('${item.id}', true)">Reactivate</button>`
+        }
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('open');
+}
+
+function scheduleSave(id) {
+  const indicator = document.getElementById('saving-' + id);
+  if (indicator) indicator.textContent = 'Unsaved changes...';
+  clearTimeout(saveTimers[id]);
+  saveTimers[id] = setTimeout(() => saveItem(id), 1500);
+}
+
+async function saveItem(id) {
+  clearTimeout(saveTimers[id]);
+  const name = document.getElementById('name-' + id)?.value.trim();
+  const cat = document.getElementById('cat-' + id)?.value;
+  const price = parseFloat(document.getElementById('price-' + id)?.value) || 0;
+  const qty = parseInt(document.getElementById('qty-' + id)?.value) || 1;
+  const indicator = document.getElementById('saving-' + id);
+
+  if (indicator) indicator.textContent = 'Saving...';
+
+  try {
+    await fibery(`
+      mutation {
+        shoppingItems(id: { is: "${id}" }) {
+          update(
+            itemName: "${name.replace(/"/g, '\\"')}"
+            unitPrice: ${price}
+            defaultQuantity: ${qty}
+          ) { message }
+        }
+      }
+    `);
+
+    // Update category separately as it's a relation
+    await fibery(`
+      mutation {
+        shoppingItems(id: { is: "${id}" }) {
+          update(category: { name: { is: "${cat}" } }) { message }
+        }
+      }
+    `);
+
+    // Update local state
+    const item = allItems.find(i => i.id === id);
+    if (item) { item.name = name; item.price = price; item.defaultQty = qty; item.category = cat; }
+
+    if (indicator) indicator.textContent = '✓ Saved';
+    setTimeout(() => { if (indicator) indicator.textContent = ''; }, 2000);
+    showToast('✓ Item saved');
+  } catch(e) {
+    if (indicator) indicator.textContent = '❌ Save failed';
+    showToast('❌ Failed to save: ' + e.message);
+  }
+}
+
+async function setActive(id, active) {
+  try {
+    await fibery(`
+      mutation {
+        shoppingItems(id: { is: "${id}" }) {
+          update(active: ${active}) { message }
+        }
+      }
+    `);
+    const item = allItems.find(i => i.id === id);
+    if (item) item.active = active;
+    render();
+    showToast(active ? '✓ Item reactivated' : '✓ Item deactivated');
+  } catch(e) {
+    showToast('❌ Failed: ' + e.message);
+  }
+}
+
+async function addItem() {
+  const name = document.getElementById('newName').value.trim();
+  const category = document.getElementById('newCategory').value;
+  const price = parseFloat(document.getElementById('newPrice').value) || 0;
+  const defaultQty = parseInt(document.getElementById('newDefaultQty').value) || 1;
+
+  if (!name) { showToast('❌ Please enter an item name'); return; }
+
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  try {
+    await fibery(`
+      mutation {
+        shoppingItems {
+          create(
+            itemName: "${name.replace(/"/g, '\\"')}"
+            unitPrice: ${price}
+            defaultQuantity: ${defaultQty}
+            currentQuantity: ${defaultQty}
+            active: true
+            shopped: false
+            category: { name: { is: "${category}" } }
+          ) { message }
+        }
+      }
+    `);
+
+    // Clear form
+    document.getElementById('newName').value = '';
+    document.getElementById('newPrice').value = '';
+    document.getElementById('newDefaultQty').value = '1';
+
+    showToast(`✓ ${name} added`);
+    await loadItems();
+  } catch(e) {
+    showToast('❌ Failed to add: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Add Item';
+  }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+loadItems();
+</script>
+</body>
+</html>
