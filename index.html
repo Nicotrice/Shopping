@@ -17,7 +17,6 @@
     --cupboard: #4ade80;
     --household: #c084fc;
     --weekly: #fb923c;
-    --danger: #ef4444;
     --done-text: #3a3a4a;
   }
 
@@ -31,7 +30,6 @@
     padding-bottom: 60px;
   }
 
-  /* HEADER */
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -48,8 +46,7 @@
     background: var(--weekly); color: #0f0f13;
     border: none; border-radius: 8px; padding: 8px 14px;
     font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    white-space: nowrap;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap;
   }
   .new-shop-btn:disabled { opacity: 0.5; }
 
@@ -61,7 +58,6 @@
   }
   .progress-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
 
-  /* TOTALS STRIP */
   .totals-strip {
     display: flex; gap: 8px; padding: 10px 16px;
     background: var(--surface2); border-bottom: 1px solid var(--border);
@@ -75,19 +71,17 @@
   }
   .total-chip span { color: var(--muted); margin-right: 4px; }
 
-  /* LOADING / ERROR */
   .state-msg {
     text-align: center; padding: 60px 20px;
     color: var(--muted); font-size: 14px;
   }
-  .state-msg .spinner {
+  .spinner {
     width: 32px; height: 32px; border: 3px solid var(--border);
     border-top-color: var(--freezer); border-radius: 50%;
     animation: spin 0.8s linear infinite; margin: 0 auto 16px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* SECTIONS */
   .section { margin: 16px 16px 0; }
 
   .section-header {
@@ -105,7 +99,6 @@
   .section-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
   .section-body.hidden { display: none; }
 
-  /* ITEMS */
   .item {
     display: flex; align-items: center; gap: 10px;
     padding: 11px 14px; border-bottom: 1px solid var(--border);
@@ -116,7 +109,6 @@
   .item.done .item-name { text-decoration: line-through; color: var(--done-text); }
   .item.done .item-sub, .item.done .item-price { color: var(--done-text); }
   .item.done .qty-btn, .item.done .qty-value { color: var(--done-text); border-color: var(--done-text); }
-  .item.saving { opacity: 0.6; pointer-events: none; }
 
   .checkbox {
     width: 22px; height: 22px; border-radius: 6px;
@@ -144,7 +136,6 @@
   .qty-btn:active { background: var(--border); }
   .qty-value { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 600; min-width: 24px; text-align: center; }
 
-  /* GRAND TOTAL */
   .grand-total {
     margin: 16px 16px 0; padding: 16px; background: var(--surface);
     border: 1px solid var(--border); border-radius: 12px;
@@ -154,7 +145,6 @@
   .grand-total .label small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px; }
   .grand-total .amount { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
 
-  /* TOAST */
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: var(--surface); border: 1px solid var(--border);
@@ -165,7 +155,6 @@
   }
   .toast.show { opacity: 1; }
 
-  /* CONFIRM MODAL */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7);
     display: flex; align-items: center; justify-content: center;
@@ -174,8 +163,7 @@
   .modal-overlay.show { opacity: 1; pointer-events: all; }
   .modal {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px; margin: 20px;
-    max-width: 340px; width: 100%;
+    border-radius: 16px; padding: 24px; margin: 20px; max-width: 340px; width: 100%;
   }
   .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
@@ -187,7 +175,6 @@
   .btn-cancel { background: var(--surface2); color: var(--muted); }
   .btn-confirm { background: var(--weekly); color: #0f0f13; }
 
-  /* CATEGORY COLOURS */
   [data-cat="Freezer"] .checkbox.checked { background: var(--freezer); border-color: var(--freezer); }
   [data-cat="Freezer"] .section-header { border-top: 3px solid var(--freezer); }
   [data-cat="Freezer"] .section-header .section-total { color: var(--freezer); }
@@ -244,9 +231,8 @@
 </div>
 
 <script>
-const FIBERY_WORKSPACE = 'dudley-house';
-const FIBERY_TOKEN = '48be8a5c.60d2672deb1f5ff1d80ce4a146101193077';
-const API_URL = `https://${FIBERY_WORKSPACE}.fibery.io/api/graphql/space/Shopping%20Log`;
+// Points to our Netlify proxy function instead of Fibery directly
+const API_URL = '/.netlify/functions/fibery';
 
 const CAT_ICONS = { Freezer: '🧊', Cupboard: '🥫', Household: '🧹', Weekly: '🛒' };
 const CAT_ORDER = ['Freezer', 'Cupboard', 'Household', 'Weekly'];
@@ -256,10 +242,7 @@ let items = [];
 async function fibery(query, variables = {}) {
   const res = await fetch(API_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${FIBERY_TOKEN}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, variables })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -293,7 +276,11 @@ async function loadItems() {
     }));
     render();
   } catch(e) {
-    document.getElementById('lists').innerHTML = `<div class="state-msg">❌ Failed to load: ${e.message}<br><br><button onclick="loadItems()" style="color:var(--weekly);background:none;border:none;cursor:pointer;font-size:14px;">Retry</button></div>`;
+    document.getElementById('lists').innerHTML = `
+      <div class="state-msg">
+        ❌ Failed to load: ${e.message}<br><br>
+        <button onclick="loadItems()" style="color:var(--weekly);background:none;border:none;cursor:pointer;font-size:14px;">Retry</button>
+      </div>`;
   }
 }
 
@@ -410,7 +397,6 @@ function updateProgress() {
   document.getElementById('progressLabel').textContent = `${done} of ${total} items done`;
 }
 
-// Debounce timers for qty updates
 const qtyTimers = {};
 
 async function toggleShopped(item) {
@@ -423,18 +409,15 @@ async function toggleShopped(item) {
       }
     `, { id: item.id, shopped: item.shopped });
   } catch(e) {
-    item.shopped = !item.shopped; // revert
+    item.shopped = !item.shopped;
     render();
     showToast('❌ Failed to update — check connection');
   }
 }
 
 async function changeQty(item, delta) {
-  const newQty = Math.max(0, item.currentQty + delta);
-  item.currentQty = newQty;
+  item.currentQty = Math.max(0, item.currentQty + delta);
   render();
-
-  // Debounce — wait 800ms after last tap before saving
   clearTimeout(qtyTimers[item.id]);
   qtyTimers[item.id] = setTimeout(async () => {
     try {
@@ -442,7 +425,7 @@ async function changeQty(item, delta) {
         mutation($id: ID!, $qty: Int!) {
           updateShoppingItems(shoppingItems: [{ id: $id, currentQuantity: $qty }]) { id }
         }
-      `, { id: item.id, qty: newQty });
+      `, { id: item.id, qty: item.currentQty });
       showToast('✓ Quantity saved');
     } catch(e) {
       showToast('❌ Failed to save quantity');
@@ -461,11 +444,8 @@ function closeModal() {
 async function executeNewShop() {
   closeModal();
   showToast('⏳ Starting new shop...');
-
   const shoppedItems = items.filter(i => i.shopped);
-
   try {
-    // 1. Create a Purchased record for each shopped item
     for (const item of shoppedItems) {
       await fibery(`
         mutation($name: String!, $itemId: ID!) {
@@ -473,8 +453,6 @@ async function executeNewShop() {
         }
       `, { name: item.name, itemId: item.id });
     }
-
-    // 2. Reset all items: shopped = false, currentQuantity = defaultQuantity
     for (const item of items) {
       await fibery(`
         mutation($id: ID!, $qty: Int!) {
@@ -484,7 +462,6 @@ async function executeNewShop() {
       item.shopped = false;
       item.currentQty = item.defaultQty;
     }
-
     showToast(`✓ New shop started — ${shoppedItems.length} purchases logged`);
     render();
   } catch(e) {
