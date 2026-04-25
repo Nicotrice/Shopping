@@ -178,15 +178,12 @@
   [data-cat="Freezer"] .checkbox.checked { background: var(--freezer); border-color: var(--freezer); }
   [data-cat="Freezer"] .section-header { border-top: 3px solid var(--freezer); }
   [data-cat="Freezer"] .section-header .section-total { color: var(--freezer); }
-
   [data-cat="Cupboard"] .checkbox.checked { background: var(--cupboard); border-color: var(--cupboard); }
   [data-cat="Cupboard"] .section-header { border-top: 3px solid var(--cupboard); }
   [data-cat="Cupboard"] .section-header .section-total { color: var(--cupboard); }
-
   [data-cat="Household"] .checkbox.checked { background: var(--household); border-color: var(--household); }
   [data-cat="Household"] .section-header { border-top: 3px solid var(--household); }
   [data-cat="Household"] .section-header .section-total { color: var(--household); }
-
   [data-cat="Weekly"] .checkbox.checked { background: var(--weekly); border-color: var(--weekly); }
   [data-cat="Weekly"] .section-header { border-top: 3px solid var(--weekly); }
   [data-cat="Weekly"] .section-header .section-total { color: var(--weekly); }
@@ -216,7 +213,6 @@
 </div>
 
 <div id="lists"></div>
-
 <div class="toast" id="toast"></div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -231,12 +227,9 @@
 </div>
 
 <script>
-// Points to our Netlify proxy function instead of Fibery directly
 const API_URL = '/.netlify/functions/fibery';
-
 const CAT_ICONS = { Freezer: '🧊', Cupboard: '🥫', Household: '🧹', Weekly: '🛒' };
 const CAT_ORDER = ['Freezer', 'Cupboard', 'Household', 'Weekly'];
-
 let items = [];
 
 async function fibery(query, variables = {}) {
@@ -287,7 +280,6 @@ async function loadItems() {
 function render() {
   const lists = document.getElementById('lists');
   lists.innerHTML = '';
-
   const grouped = {};
   CAT_ORDER.forEach(c => grouped[c] = []);
   items.forEach(item => {
@@ -321,8 +313,7 @@ function render() {
       <span class="icon">${CAT_ICONS[cat] || '📦'}</span>
       <span class="title">${cat}</span>
       <span class="section-total">£${catTotal.toFixed(2)}</span>
-      <span class="chevron">▾</span>
-    `;
+      <span class="chevron">▾</span>`;
     header.onclick = () => {
       header.classList.toggle('collapsed');
       body.classList.toggle('hidden');
@@ -334,7 +325,6 @@ function render() {
     catItems.forEach(item => {
       const row = document.createElement('div');
       row.className = 'item' + (item.shopped ? ' done' : '');
-      row.dataset.id = item.id;
 
       const cb = document.createElement('div');
       cb.className = 'checkbox' + (item.shopped ? ' checked' : '');
@@ -404,10 +394,12 @@ async function toggleShopped(item) {
   render();
   try {
     await fibery(`
-      mutation($id: ID!, $shopped: Boolean!) {
-        updateShoppingItems(shoppingItems: [{ id: $id, shopped: $shopped }]) { id }
+      mutation {
+        shoppingItems(id: { is: "${item.id}" }) {
+          update(shopped: ${item.shopped})
+        }
       }
-    `, { id: item.id, shopped: item.shopped });
+    `);
   } catch(e) {
     item.shopped = !item.shopped;
     render();
@@ -422,10 +414,12 @@ async function changeQty(item, delta) {
   qtyTimers[item.id] = setTimeout(async () => {
     try {
       await fibery(`
-        mutation($id: ID!, $qty: Int!) {
-          updateShoppingItems(shoppingItems: [{ id: $id, currentQuantity: $qty }]) { id }
+        mutation {
+          shoppingItems(id: { is: "${item.id}" }) {
+            update(currentQuantity: ${item.currentQty})
+          }
         }
-      `, { id: item.id, qty: item.currentQty });
+      `);
       showToast('✓ Quantity saved');
     } catch(e) {
       showToast('❌ Failed to save quantity');
@@ -446,26 +440,36 @@ async function executeNewShop() {
   showToast('⏳ Starting new shop...');
   const shoppedItems = items.filter(i => i.shopped);
   try {
+    // Create a Purchased record for each shopped item
     for (const item of shoppedItems) {
       await fibery(`
-        mutation($name: String!, $itemId: ID!) {
-          createPurchased(purchased: { name: $name, shoppingItem: { id: $itemId } }) { id }
+        mutation {
+          purchaseds {
+            create(name: "${item.name.replace(/"/g, '\\"')}") {
+              id
+            }
+          }
         }
-      `, { name: item.name, itemId: item.id });
+      `);
     }
+
+    // Reset all items: shopped = false, currentQuantity = defaultQuantity
     for (const item of items) {
       await fibery(`
-        mutation($id: ID!, $qty: Int!) {
-          updateShoppingItems(shoppingItems: [{ id: $id, shopped: false, currentQuantity: $qty }]) { id }
+        mutation {
+          shoppingItems(id: { is: "${item.id}" }) {
+            update(shopped: false, currentQuantity: ${item.defaultQty})
+          }
         }
-      `, { id: item.id, qty: item.defaultQty });
+      `);
       item.shopped = false;
       item.currentQty = item.defaultQty;
     }
+
     showToast(`✓ New shop started — ${shoppedItems.length} purchases logged`);
     render();
   } catch(e) {
-    showToast('❌ Error starting new shop — try again');
+    showToast('❌ Error: ' + e.message);
   }
 }
 
