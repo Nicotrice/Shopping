@@ -264,7 +264,7 @@ async function loadItems() {
       name: i.itemName,
       price: i.unitPrice || 0,
       defaultQty: i.defaultQuantity || 1,
-      currentQty: i.currentQuantity || i.defaultQuantity || 1,
+      currentQty: i.currentQuantity != null ? i.currentQuantity : (i.defaultQuantity || 1),
       shopped: i.shopped || false,
       category: i.category?.name || 'Other'
     }));
