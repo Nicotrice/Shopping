@@ -5,7 +5,7 @@ exports.handler = async function(event) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const FIBERY_TOKEN = '48be8a5c.60d2672deb1f5ff1d80ce4a146101193077';
+  const FIBERY_TOKEN = '00a32bbe.52c0afd34d56305194624f415a14792ba04';
 
   return new Promise((resolve) => {
     const options = {
