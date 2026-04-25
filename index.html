@@ -445,8 +445,8 @@ async function executeNewShop() {
       await fibery(`
         mutation {
           purchaseds {
-            create(name: "${item.name.replace(/"/g, '\\"')}") {
-              id
+            create(shoppingItem: { id: { is: "${item.id}" } }) {
+              message
             }
           }
         }
