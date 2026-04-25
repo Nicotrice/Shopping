@@ -396,7 +396,7 @@ async function toggleShopped(item) {
     await fibery(`
       mutation {
         shoppingItems(id: { is: "${item.id}" }) {
-          update(shopped: ${item.shopped})
+          update(shopped: ${item.shopped}) { message }
         }
       }
     `);
@@ -416,7 +416,7 @@ async function changeQty(item, delta) {
       await fibery(`
         mutation {
           shoppingItems(id: { is: "${item.id}" }) {
-            update(currentQuantity: ${item.currentQty})
+            update(currentQuantity: ${item.currentQty}) { message }
           }
         }
       `);
@@ -458,7 +458,7 @@ async function executeNewShop() {
       await fibery(`
         mutation {
           shoppingItems(id: { is: "${item.id}" }) {
-            update(shopped: false, currentQuantity: ${item.defaultQty})
+            update(shopped: false, currentQuantity: ${item.defaultQty}) { message }
           }
         }
       `);
