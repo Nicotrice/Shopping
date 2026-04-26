@@ -39,6 +39,6 @@ A household shopping list app backed by [Fibery](https://fibery.io), hosted on N
 
 ## ⚠️ Known Issues / TODO
 
-- [ ] **Fix weekly ×4 monthly total** — `catTotal` in `index.html` needs to multiply Weekly category by 4; update chip/header to use `monthlyTotal`
+- [x] **Fix weekly ×4 monthly total** — `catTotal` in `index.html` needs to multiply Weekly category by 4; update chip/header to use `monthlyTotal`
 - [x] **Move API token to environment variable** — token is currently hardcoded in `fibery.js`; add `FIBERY_TOKEN` to Netlify site settings, update code to use `process.env.FIBERY_TOKEN`, then regenerate the token in Fibery
 - [ ] **Add Date Purchased field** — add field to `Purchased` table in Fibery, then update code to store the tick timestamp and pass it through on New Shop
