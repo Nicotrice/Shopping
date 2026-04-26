@@ -297,11 +297,12 @@ function render() {
     if (!catItems || catItems.length === 0) return;
 
     const catTotal = catItems.reduce((s, i) => s + (i.price * i.currentQty), 0);
-    grandTotal += catTotal;
+    const monthlyTotal = cat === 'Weekly' ? catTotal * 4 : catTotal;
+    grandTotal += monthlyTotal;
 
     const chip = document.createElement('div');
     chip.className = 'total-chip';
-    chip.innerHTML = `<span>${CAT_ICONS[cat] || '📦'}</span>£${catTotal.toFixed(2)}`;
+    chip.innerHTML = `<span>${CAT_ICONS[cat] || '📦'}</span>£${monthlyTotal.toFixed(2)}`;
     strip.appendChild(chip);
 
     const section = document.createElement('div');
@@ -312,8 +313,8 @@ function render() {
     header.className = 'section-header';
     header.innerHTML = `
       <span class="icon">${CAT_ICONS[cat] || '📦'}</span>
-      <span class="title">${cat}</span>
-      <span class="section-total">£${catTotal.toFixed(2)}</span>
+      <span class="title">${cat}${cat === 'Weekly' ? ' (x4)' : ''}</span>
+      <span class="section-total">£${monthlyTotal.toFixed(2)}</span>
       <span class="chevron">▾</span>`;
     header.onclick = () => {
       header.classList.toggle('collapsed');
